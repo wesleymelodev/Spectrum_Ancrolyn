@@ -199,3 +199,5 @@ if __name__ == "__main__":
 
     parser_ancrolyn = BackgroundParser(state_path=ARQUIVO_ESTADO)
     parser_ancrolyn.executar_ciclo_ociosidade(DIRETORIO_CONHECIMENTO, latencia_ciclo=4.0)
+
+    # & "C:\Program Files\Python313\python.exe" e:/Spectrum_Ancrolyn/scripts/tempo_ocioso.py

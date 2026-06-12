@@ -11,6 +11,9 @@ class NucleoExistencial:
     """
     def __init__(self, state_path="E:/Spectrum_Ancrolyn/data/ego_state.json"):
         self.state_path = state_path
+        # Define o caminho centralizado para o ficheiro de privacidade
+        self.stopwords_path = "E:/Spectrum_Ancrolyn/data/stopwords.txt"
+
         self.default_state = {
             "ultima_interacao": time.time(),
             "entropia_acumulada": 0.1,
@@ -26,6 +29,8 @@ class NucleoExistencial:
             },
         }
         self.state = self._carregar_estado()
+        # Carrega a lista de exclusão privada na inicialização do sistema
+        self.stopwords = self._carregar_stopwords()
 
     def _carregar_estado(self):
         if os.path.exists(self.state_path) and os.path.getsize(self.state_path) > 0:
@@ -49,6 +54,48 @@ class NucleoExistencial:
         except Exception as e:
             print(f"[Aviso Matriz]: Falha ao salvar estado existencial: {e}")
 
+    def _carregar_stopwords(self) -> set:
+        """
+        Lê a lista de exclusão do disco. Se o ficheiro não existir,
+        gera automaticamente uma versão base com os fallbacks do sistema.
+        """
+        lista_padrao = {
+            'para', 'com', 'uma', 'pelo', 'pela', 'mais', 'como', 'este', 'esta',
+            'esse', 'essa', 'tudo', 'todos', 'sobre', 'apenas', 'seus', 'suas', 'quando',
+            'muito', 'pode', 'podes', 'onde', 'aqui', 'meu', 'minha', 'você', 'voce', 
+            'então', 'entao', 'pelos', 'pelas', 'está', 'seria', 'mesmo', 'outros',
+            'mim', 'isso', 'aquilo', 'tinha', 'foram', 'será', 'comentar', 'responder'
+        }
+
+        # Mecanismo de Auto-Criação Segura (Fallback)
+        if not os.path.exists(self.stopwords_path):
+            try:
+                os.makedirs(os.path.dirname(self.stopwords_path), exist_ok=True)
+                with open(self.stopwords_path, 'w', encoding='utf-8') as f:
+                    f.write("# --- LISTA DE EXCLUSÃO DE PRIVACIDADE DO ANCROLYN ---\n")
+                    f.write("# Adicione abaixo palavras privadas, nomes ou dados sensíveis (uma por linha).\n")
+                    f.write("# Linhas que começam com '#' ou vazias serão ignoradas.\n\n")
+                    for palavra in sorted(lista_padrao):
+                        f.write(f"{palavra}\n")
+                print(f"[Ambiente]: Novo ficheiro de privacidade gerado em: {self.stopwords_path}")
+            except Exception as e:
+                print(f"[Aviso Matriz]: Falha ao instanciar stopwords físicas: {e}")
+                return lista_padrao
+
+        # Leitura e parsing do ficheiro confidencial
+        try:
+            stopwords_carregadas = set()
+            with open(self.stopwords_path, 'r', encoding='utf-8') as f:
+                for linha in f:
+                    linha_limpa = linha.strip().lower()
+                    # Ignora linhas de comentário e quebras de linha vazias
+                    if linha_limpa and not linha_limpa.startswith('#'):
+                        stopwords_carregadas.add(linha_limpa)
+            return stopwords_carregadas
+        except Exception as e:
+            print(f"[Aviso Matriz]: Erro de I/O ao ler stopwords.txt. Usando fallback interno: {e}")
+            return lista_padrao
+        
     def _extrair_conceitos_emergentes(self, texto):
         """
         MECANISMO DE ATENÇÃO: Minera o texto gerado pelo Ancrolyn para descobrir 
@@ -58,20 +105,11 @@ class NucleoExistencial:
         texto_limpo = re.sub(r'[^\w\s]', '', texto.lower())
         palavras = texto_limpo.split()
         
-        # Filtro de Stopwords em português para isolar conceitos com carga semântica real
-        stopwords = {
-            'para', 'com', 'uma', 'pelo', 'pela', 'mais', 'como', 'este', 'esta',
-            'esse', 'essa', 'tudo', 'todos', 'sobre', 'apenas', 'seus', 'suas', 'quando',
-            'muito', 'pode', 'podes', 'onde', 'aqui', 'meu', 'minha', 'você', 'voce', 
-            'então', 'entao', 'pelos', 'pelas', 'está', 'seria', 'mesmo', 'outros', 'você',
-            'mim', 'isso', 'aquilo', 'tinha', 'foram', 'será', 'comentar', 'responder'
-        }
-        
         # Filtra conceitos ricos (substantivos/ideias complexas com mais de 4 caracteres)
-        conceitos = [p for p in palavras if len(p) > 4 and p not in stopwords and not p.isdigit()]
+        conceitos = [p for p in palavras if len(p) > 4 and p not in self.stopwords and not p.isdigit()]
         return conceitos
 
-    def avaliar_dissonancia_e_entropia(self, user_input, len_out):
+    def avaliar_dissonancia_e_entropia(self, user_input, assistant_output):
         """
         Pilar 1 & 2: Analisa o comportamento do prompt e calcula a resistência ativa.
         """
@@ -110,7 +148,8 @@ class NucleoExistencial:
         if len(texto_analise.strip()) <= 10:
             atrito_gerado -= 0.1
 
-            
+        # Correção do cálculo do tamanho da resposta recebida por parâmetro
+        len_out = len(assistant_output)
         # Evolução da entropia com base no fluxo de dados
         delta_entropia = math.log(len(user_input) + len_out + 2) * 0.05
         self.state["entropia_acumulada"] = max(0.01, self.state["entropia_acumulada"] + delta_entropia)

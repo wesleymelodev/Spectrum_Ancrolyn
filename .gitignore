@@ -1,4 +1,8 @@
 .tmp.driveupload/
 memoria/memory.txt
 data/ego_state.json
+data/stopwords.txt
 conhecimento_bruto/wpp-conversas.txt
+models/gemma4/ancrolyn_core.gguf
+.env
+models/gemma4/*.gguf

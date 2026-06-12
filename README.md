@@ -82,7 +82,7 @@ Spectrum_Ancrolyn/
 │
 ├── models/
 │   └── gemma4/
-│       └── ancrolyn_core.gguf        # Binário do Modelo de Linguagem (LLM)
+│       └── ancrolyn_core.gguf        # Binário do Modelo de Linguagem (LLM) (acesse: https://huggingface.co/bartowski/rpDungeon_Gemma-4-E4B-Luchador-GGUF/blob/main/rpDungeon_Gemma-4-E4B-Luchador-Q5_K_S.gguf  para fazer o download do modelo que seu dispositivo suportar)
 │
 ├── .gitignore                        # Bloqueador de resíduos (ex: Google Drive tmp)
 └── README.md                         # Documentação do Sistema
